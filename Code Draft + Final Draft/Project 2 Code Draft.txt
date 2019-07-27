@@ -1,0 +1,299 @@
+/*
+* File: main.cpp
+* Author: Shravan Shenoy
+* Created on July 24, 2016, 2:15 PM
+* Purpose: Project 2 Blackjack Simulation
+*/
+
+//System Libraries
+#include <iostream> //Input/Output Stream Library
+#include <iomanip> //Formatting Library
+#include <ctime> //Unique Seed Value Library
+#include <cstdlib> //Random Value Library
+#include <string> //String Library
+#include <fstream> //File I/O
+#include <cmath> //Math Library
+
+using namespace std;
+
+void deal(int,int&,int& ,int[][2],int&,int[][2] );
+void deal(int,int&,int&,int&,int[][2],int&,int[][2] );
+int getbet(int); // This is a function, not a global variable.
+void fillDc(int[][2],int);
+void shuffle(int[][2],int);
+void couthnd(int,int[][2]);
+
+int main(int argc, char** argv) {
+
+const float PERCENT=100.0f;//Conversion to Percent
+const int HNDRDMIL=10e8; //Hundred Million
+const int MILLION =10e6; //Million
+const int HNDTHSND=10e5; //Hundred Thousand
+
+{   
+    string suit[4]={"Hearts","Diamonds","Spades","Clubs"};
+    string card[13]={"Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"};
+    int ttlD;   // total num of card values for Dealer
+    int ttlP;   // total num of cards values for Player
+    int upto=0; // zero value to be changed
+    float money; // number of money player says he/she has at start
+    int bet; // amount of money used as bet
+    int aces; // num of aces
+    int decks=2; // number of decks (only 2, for player and dealer)
+    int j; // used for deck functions
+    int deck[52*decks][2];
+    int dealhnd[20][2]; // showing dealers hand setup
+    int playhnd[20][2]; // showing players hand setup
+    int playcrd; // play card setup
+    int dealcrd; // deal card setup
+    char choice1='Y'; // Universal input choice for hitting and standing, and if player wants to play again
+    bool again; // bool option to determine if player wants to play again or not
+    srand(static_cast<unsigned int>(time(0)));
+    
+    ofstream out;
+
+    //Open File & Enter Primary Input Data
+    out.open("stats.dat");
+    
+    fillDc(deck,decks); // fills the deck with cards, initializes
+    shuffle(deck,decks); // shuffles the deck, ensures randomness 
+    
+    int ttlscrn; 
+    cout << "Press number 1,2, or 3 for a unique Title Screen.";
+    cin >> ttlscrn;
+   switch (ttlscrn) 
+   { 
+       case 1: cout<<" - - - - - - - - - - - - - - - - - - -"<< endl; // Unique Menu Option 1
+               cout<<"         **  Welcome to **" << endl;
+               cout<<"      ** BlackJack Simulator **" << endl;
+               cout<<" - - - - - - - - - - - - - - - - - - -\n"<< endl;
+               cout<< endl;
+                break; 
+       case 2: cout<<" * * * * * * * * * * * * * * * * * *"<< endl; // Unique Menu Option 2
+               cout<<"             Welcome to " << endl;
+               cout<<"         BlackJack Simulator" << endl;
+               cout<<" * * * * * * * * * * * * * * * * * *\n"<< endl;
+               cout<< endl;
+                break; 
+       case 3: cout<<"X X X X X X X X X X X X X X X X X X X "<< endl; // Unique Menu Option 3
+               cout<<"             Welcome to " << endl;
+               cout<<"         BlackJack Simulator" << endl;
+               cout<<"X X X X X X X X X X X X X X X X X X X \n"<< endl;
+               cout<< endl;
+                break; 
+   } 
+   
+   /*
+    string oppname='A';
+    cout<<"What do you want the name of your opponent to be?"<<endl;
+    cout<<"Press A and enter for ' CSC Student ',\n or anything else and enter for ' Blackjack Bot '.\n";
+    cin>>oppname;
+    
+    (oppname=='A') ? (oppname='Student') : (oppname='Bot');
+    cout << "The name of your opponent is '" << oppname << "'.\nLet's begin the game.";
+   
+    string oppname,oppname1,oppname2,oppname3;
+    cout<<"What do you want the name of your opponent to be?"<<endl;
+    cout<<"Press A and enter for ' Blackjack Bot ',\nB for ' CSC Student ',\nor C for 'Bob'.\n";
+    cin>>oppname;
+    
+    
+    cout << "The name of your opponent is:\n";
+    if (oppname=='A')
+    {
+        prtoppN("Blackjack Bot");
+    }
+    if (oppname=='B')
+    {
+        prtoppN("CSC Student");
+    }
+    if (oppname=='B')
+    {
+        prtoppN("Bob");
+    }
+     */
+    
+    cout<<"\nHow much money are you starting with? ";
+    cin>>money;
+    while(money>0&&toupper(choice1)=='Y')
+    {
+        bet=getbet(money);
+    ttlD=0; 
+    playcrd=0;
+    dealcrd=0;
+    cout<<"\nDealer cards\n";
+    deal(2,ttlD,upto,deck,dealcrd,dealhnd);
+    couthnd(dealcrd,dealhnd);
+    aces=0;
+    ttlP=0;
+    cout<<"\nPlayer cards\n";
+    deal(2,aces,ttlP,upto,deck,playcrd,playhnd);
+    couthnd(playcrd,playhnd);
+    cout<<"\nYour total is "<<ttlP<<endl;
+    cout<<"You have "<<aces<<" Aces."<<endl;
+    again=false;
+
+    while(ttlD<21&&ttlP<21&&!again)
+    {
+        cout<<"\nDo you want to hit? (Y/N)";
+        cin>>choice1;   
+        
+     if(toupper(choice1)=='Y')
+          {cout<<"\nPlayer cards\n";
+          deal(1,aces,ttlP,upto,deck,playcrd,playhnd);
+          couthnd(playcrd,playhnd);
+           cout<<"\nYour total is "<<ttlP<<endl;
+           cout<<"You have "<<aces<<" Aces"<<endl;
+           }
+     else
+         again=true;
+     }
+cout<<"Dealer total: "<<ttlD<<endl;
+cout<<"Your total: "<<ttlP<<endl;
+
+if(ttlD>ttlP||ttlP>21)
+      money-=bet;
+else if(ttlD<ttlP&&ttlP<=21)
+      money+=bet;
+cout<<fixed<<setprecision(2)<<showpoint;
+cout<<"\nThis game has ended. \nYou have $"<<money<<" remaining.\n";
+if(money>0)
+     {cout<<"\nPlay again (Y/N)?";
+     cin>>choice1;
+     }
+
+//Finishing Outputs to file
+    out << "Here are your Final Game Stats:" << endl << endl;
+    out << "You ended with a total of " << money <<".";
+    out.close();
+
+}
+    
+    
+system("pause"); // Nifty command found online to pause/end the run when needed.
+
+
+
+    return 0;
+        }
+}
+void couthnd(int m,int deck[][2])
+{int i;
+string suit[4]={"Hearts","Diamonds","Spades","Clubs"};
+string card[13]={"Ace","2","3","4","5","6","7","8","9","10","Jack","Queen","King"};
+for(i=0;i<m;i++)
+   cout<<card[deck[i][1]]<<"\t"<<suit[deck[i][0]]<<endl;
+}
+void deal(int num,int& tot,int& upto,int deck[][2],int& m,int p[][2])
+{int i,n;
+ for(i=0;i<num;i++)
+     {n=deck[upto][1];
+     n++;
+     if(n>10)
+         n=10;
+       p[m][1]=deck[upto][1];
+     p[m][0]=deck[upto][0];
+     m++;   
+         
+      if(n==1)
+          tot+=11;
+      else if(n>=10)
+          tot+=10;
+      else
+          tot+=n;
+      upto++;
+       }
+}
+void deal(int num,int& aces,int &tot,int& upto,int deck[][2],int& m,int p[][2])
+{int i,n;
+ for(i=0;i<num;i++)
+     {n=deck[upto][1];
+     n++;
+     if(n>10)
+         n=10;
+     p[m][1]=deck[upto][1];
+     p[m][0]=deck[upto][0];
+     m++;
+      if(n==1)
+         {aces++;
+          tot+=11;
+          }
+      else if(n>=10)
+          tot+=10;
+      else
+          tot+=n;
+      upto++;
+          }
+if(tot>21)
+    if(aces==0)
+         return;
+    else
+        {aces--;
+        tot-=10;
+        }
+}
+int getbet(int money)
+{int bet;
+cout<<"You have $"<<money<<". Enter your bet in only numbers: ";
+cin>>bet;
+while(bet>money)
+    {cout<<"You cannot bet more than what you have. That's not how life works.\n";
+     cout<<"You have $"<<money<<". Please enter your bet. ";
+     cin>>bet;
+     }
+return bet;
+}
+
+void shuffle(int deck[][2],int decks)                  
+{
+int i,num1,type1,num2,type2,temp;
+for(i=0;i<100*decks;i++)
+   {num1=rand()%(13*decks);
+    num2=rand()%(13*decks);
+    type1=rand()%4;
+    type2=rand()%4;
+    temp=deck[type1][0];
+    deck[type1][0]=deck[type2][0];
+    deck[type2][0]=temp;
+    temp=deck[num1][1];
+    deck[num1][1]=deck[num2][1];
+    deck[num2][1]=temp;
+    }
+      
+}
+
+void fillDc(int deck[][2],int decks)                  
+{
+	bool cards[4][13][decks];
+int i,j,k,num,type,d;
+for(i=0;i<4;i++)
+   for(j=0;j<13;j++)
+         for(k=0;k<decks;k++)
+             cards[i][j][k]=false;
+             
+   for(j=0;j<52*decks;j++)
+        {do
+           {
+            num=rand()%13;
+            type=rand()%4;
+            d=rand()%decks;
+            }while(cards[type][num][d]);
+         deck[j][0]=type;
+         deck[j][1]=num;
+         cards[type][num][d]=true; 
+         }
+}
+/*
+ void prtoppN(string oppname1)
+{ 
+    cout << "Blackjack Bot";
+}
+void prtoppN(string oppname2)
+{ 
+    cout << "CSC Student";
+}
+void prtoppN(string oppname3)
+{ 
+    cout << "Bob";
+}
+ */
